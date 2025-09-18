@@ -1,0 +1,8 @@
+- name: Configure and manage VMs
+  hosts: vms
+  become: true
+
+  roles:
+    - ../roles/common
+    - ../roles/fail2ban
+    - ../roles/vm_management

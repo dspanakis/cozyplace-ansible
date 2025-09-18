@@ -1,0 +1,6 @@
+- name: Create ansible user and configure SSH access
+  hosts: all
+  become: true
+
+  roles:
+    - ../roles/fail2ban

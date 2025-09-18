@@ -1,0 +1,95 @@
+---
+# Playbook to create an ansible user on all hosts and update the inventory
+- name: Create ansible user and configure SSH access
+  hosts: all
+  become: true
+  vars:
+    ansible_public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    
+  tasks:
+    - name: Create ansible group
+      group:
+        name: ansible
+        state: present
+      
+    - name: Create ansible user (no password login allowed)
+      user:
+        name: ansible
+        password: '!'  # Locked password - no password login possible
+        group: ansible
+        groups: sudo
+        shell: /bin/bash
+        state: present
+        create_home: true
+        append: true
+
+    - name: Ensure sudo privileges for ansible user without password
+      lineinfile:
+        path: /etc/sudoers.d/ansible
+        line: "ansible ALL=(ALL) NOPASSWD: ALL"
+        state: present
+        mode: 0440
+        create: true
+        validate: 'visudo -cf %s'
+
+    - name: Create SSH directory for ansible user
+      file:
+        path: /home/ansible/.ssh
+        state: directory
+        mode: '0700'
+        owner: ansible
+        group: ansible
+
+    - name: Deploy authorized_keys for ansible user
+      copy:
+        content: "{{ ansible_public_key }}"
+        dest: /home/ansible/.ssh/authorized_keys
+        mode: '0600'
+        owner: ansible
+        group: ansible
+        
+    - name: Ensure SSH password authentication is disabled for security
+      blockinfile:
+        path: /etc/ssh/sshd_config
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - SECURITY SETTINGS"
+        block: |
+          # Disable password authentication for security
+          PasswordAuthentication no
+          # Allow public key authentication
+          PubkeyAuthentication yes
+        validate: 'sshd -t -f %s'
+      register: ssh_config_updated
+        
+    - name: Restart SSH service if config was updated
+      service:
+        name: "{{ 'sshd' if ansible_os_family == 'RedHat' else 'ssh' }}"
+        state: restarted
+      when: ssh_config_updated.changed
+        
+    - name: Test sudo access for ansible user
+      command: sudo -u ansible sudo -n true
+      changed_when: false
+      
+    - name: Test SSH key-based login for ansible user
+      command: "ssh -o BatchMode=yes -o ConnectTimeout=5 ansible@localhost echo SSH connection successful"
+      changed_when: false
+      failed_when: false
+      register: ssh_test
+      ignore_errors: true
+      become: false
+      
+    - name: Display SSH connection status
+      debug:
+        msg: "{{ ssh_test.rc == 0 | ternary('SSH connection successful!', 'SSH connection failed. Verify keys and SSH configuration.') }}"
+        
+    - name: Generate updated inventory for this host
+      set_fact:
+        updated_inventory_line: "{{ inventory_hostname }}     ansible_host={{ ansible_host }}  ansible_user=ansible{% if ansible_port is defined %} ansible_port={{ ansible_port }}{% endif %}"
+      
+    - name: Display inventory line to update
+      debug:
+        msg: 
+          - "Current inventory line:"
+          - "{{ inventory_hostname }}     ansible_host={{ ansible_host }}  ansible_user={{ ansible_user }}{% if ansible_port is defined %} ansible_port={{ ansible_port }}{% endif %}"
+          - "Should be updated to:"
+          - "{{ updated_inventory_line }}"

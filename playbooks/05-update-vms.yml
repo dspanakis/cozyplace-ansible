@@ -1,0 +1,6 @@
+- name: Configure and manage VMs
+  hosts: vms
+  become: true
+
+  roles:
+    - ../roles/update

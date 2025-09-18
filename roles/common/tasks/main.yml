@@ -1,0 +1,28 @@
+---
+# Main task file for common role
+
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+  become: true
+
+- name: Update package cache (RHEL/CentOS)
+  yum:
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+  become: true
+
+- name: Install common packages
+  package:
+    name: "{{ common_packages }}"
+    state: present
+  become: true
+  when: common_packages is defined
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone | default('UTC') }}"
+  become: true
+  when: timezone is defined

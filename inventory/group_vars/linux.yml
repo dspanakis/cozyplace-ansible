@@ -1,0 +1,12 @@
+# Common variables for all Linux hosts
+ansible_python_interpreter: /usr/bin/python3
+common_packages:
+  - vim
+  - htop
+  - curl
+  - wget
+  - tmux
+  - git
+
+# Default timezone
+timezone: "UTC"

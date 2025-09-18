@@ -1,0 +1,47 @@
+---
+# Main task file for common role
+
+- name: Install Fail2Ban
+  apt:
+    name: fail2ban
+    state: present
+    update_cache: yes
+  when: fail2ban_enabled | default(true)
+
+- name: Deploy custom jail.local
+  template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart-fail2ban
+  when: fail2ban_enabled | default(true)
+
+- name: Ensure fail2ban is running and enabled
+  service:
+    name: fail2ban
+    state: started
+    enabled: yes
+  when: fail2ban_enabled | default(true)
+
+- name: Stop Fail2Ban if disabled
+  service:
+    name: fail2ban
+    state: stopped
+    enabled: no
+  when: not (fail2ban_enabled | default(true))
+
+- name: Remove Fail2Ban package if disabled
+  apt:
+    name: fail2ban
+    state: absent
+    purge: yes
+  when: not (fail2ban_enabled | default(true))
+
+- name: Remove Fail2Ban config files if disabled
+  file:
+    path: /etc/fail2ban
+    state: absent
+  when: not (fail2ban_enabled | default(true))
