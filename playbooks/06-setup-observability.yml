@@ -1,0 +1,6 @@
+- name: Configure telegraf for vms
+  hosts: all
+  become: true
+
+  roles:
+    - ../roles/telegraf

@@ -18,12 +18,14 @@ ansible/
 │   ├── 03-install-docker.yml         # Install Docker
 │   ├── 04-configure-vms.yml          # Configure VMs
 │   ├── 05-update-vms.yml             # Update systems
+│   ├── 06-setup-observability.yml    # Setup telegraf
 │   └── tbd/                          # Playbooks under development
 └── roles/                   # Role definitions
     ├── common/              # Common tasks for all hosts
     ├── fail2ban/            # Fail2ban installation and configuration
     ├── update/              # System update routines
     └── vm_management/       # VM-specific management tasks
+    └── telegraf/            # Telegraf configuration for VMs
 ```
 
 ## Initial Setup
@@ -107,6 +109,17 @@ The `vm_management` role:
 - Setups qemu-guest-agent
 - Sets up vm hostname
 - Installs additional packages
+
+
+### Telegraf
+
+The `telegraf` role:
+- Installs the Telegraf monitoring agent from InfluxData repositories
+- Configures Telegraf to collect system metrics (CPU, memory, disk, network)
+- Sets up InfluxDB output configuration with dynamic URL selection based on network location
+- Manages Telegraf service lifecycle (start, enable, restart on config changes)
+- Supports both internal and external network configurations for InfluxDB connectivity
+- Includes comprehensive system monitoring plugins for observability
 
 ## Adding New Hosts
 

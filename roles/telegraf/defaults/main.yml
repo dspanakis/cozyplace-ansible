@@ -1,0 +1,2 @@
+telegraf_enabled: false
+telegraf_docker_enabled: false

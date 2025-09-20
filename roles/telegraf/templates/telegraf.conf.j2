@@ -1,0 +1,64 @@
+###############################################################################
+#                            GLOBAL AGENT CONFIG                               #
+###############################################################################
+[agent]
+  ## How often to gather metrics
+  interval = "10s"
+  ## Rounds collection interval to even multiples of 'interval'
+  round_interval = true
+  ## Max number of metrics to buffer in memory
+  metric_buffer_limit = 10000
+  ## Flush interval for sending metrics
+  flush_interval = "20s"
+  ## Precision of timestamps
+  precision = ""
+  ## Log file
+  ## logfile = "/var/log/telegraf/telegraf.log"
+  ## Run in debug mode
+  debug = false
+
+###############################################################################
+#                               OUTPUT PLUGINS                                 #
+###############################################################################
+[[outputs.influxdb_v2]]
+  ## The URLs of the InfluxDB cluster
+  urls = ["{{ EXTERNAL_INFLUX_URL | default(INFLUX_URL) }}"]
+  ## Token for authentication
+  token = "{{ INFLUX_TOKEN }}"
+  ## InfluxDB organization
+  organization = "{{ TELEGRAF_ORG | default('cozyplace') }}"
+  ## Bucket to write metrics to
+  bucket = "{{ TELEGRAF_BUCKET | default('main') }}"
+  ## Optional HTTP timeout
+  timeout = "5s"
+
+[outputs.influxdb_v2.tags]
+  hostname = "{{ ansible_hostname }}"
+{% if telegraf_custom_tags is defined %}
+{% for key, value in telegraf_custom_tags.items() %}
+  {{ key }} = "{{ value }}"
+{% endfor %}
+{% endif %}
+
+###############################################################################
+#                               INPUT PLUGINS                                  #
+###############################################################################
+[[inputs.cpu]]
+  percpu = true
+  totalcpu = true
+  collect_cpu_time = false
+  report_active = true
+
+[[inputs.mem]]
+[[inputs.disk]]
+  ignore_fs = ["tmpfs", "devtmpfs"]
+[[inputs.diskio]]
+[[inputs.processes]]
+
+{% if telegraf_docker_enabled | default(false) %}
+[[inputs.docker]]
+  endpoint = "unix:///var/run/docker.sock"
+  gather_services = false
+  timeout = "5s"
+{% endif %}
+

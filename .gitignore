@@ -1,1 +1,3 @@
 hosts
+all.yml
+inventory/group_vars/external_network.yml
