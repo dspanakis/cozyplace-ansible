@@ -1,62 +1,12 @@
-- name: Ensure InfluxData GPG key is downloaded
-  ansible.builtin.get_url:
-    url: https://repos.influxdata.com/influxdata-archive.key
-    dest: /usr/share/keyrings/influxdata-archive-keyring.gpg
-    mode: '0644'
-  when: ansible_os_family == "Debian" and telegraf_enabled
+---
+# Main tasks file for telegraf role
 
-- name: Show OS codename
-  debug:
-    msg: "The selected codename is {{ debian_codename | default(ansible_distribution_release) }}"
+- name: Include telegraf installation tasks
+  include_tasks: install.yml
+  when: telegraf_install | default(false)
 
-- name: Add InfluxData repository (Debian/Ubuntu)
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/influxdata-archive-keyring.gpg] https://repos.influxdata.com/debian {{ debian_codename | default(ansible_distribution_release) }} stable"
-    state: present
-    filename: influxdata
-  when: ansible_os_family == "Debian" and telegraf_enabled
-
-- name: Update apt cache
-  ansible.builtin.apt:
-    update_cache: yes
-  when: ansible_os_family == "Debian" and telegraf_enabled
-
-- name: Install Telegraf
-  ansible.builtin.apt:
-    name: telegraf
-    state: present
-  when: ansible_os_family == "Debian" and telegraf_enabled
-
-- name: Deploy Telegraf configuration
-  ansible.builtin.template:
-    src: telegraf.conf.j2
-    dest: /etc/telegraf/telegraf.conf
-    owner: root
-    group: root
-    mode: '0644'
-  notify:
-    - restart-telegraf
-  when: telegraf_enabled
-
-- name: Add user to docker group if telegraf_docker_enabled
-  ansible.builtin.user:
-    name: telegraf
-    groups: docker
-    append: yes
-  when: telegraf_enabled and telegraf_docker_enabled
-
-- name: Remove user from docker group if not telegraf_docker_enabled
-  ansible.builtin.user:
-    name: telegraf
-    groups: docker
-    append: no
-  when: not telegraf_docker_enabled
-
-- name: Enable and start Telegraf
-  ansible.builtin.service:
-    name: telegraf
-    state: started
-    enabled: yes
+- name: Include telegraf configuration tasks
+  include_tasks: configure.yml
   when: telegraf_enabled
 
 - name: Disable and stop Telegraf if not enabled

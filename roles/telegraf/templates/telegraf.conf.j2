@@ -54,6 +54,8 @@
   ignore_fs = ["tmpfs", "devtmpfs"]
 [[inputs.diskio]]
 [[inputs.processes]]
+[[inputs.netstat]]
+[[inputs.system]]
 
 {% if telegraf_docker_enabled | default(false) %}
 [[inputs.docker]]

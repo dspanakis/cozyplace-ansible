@@ -1,0 +1,28 @@
+- name: Ensure InfluxData GPG key is downloaded
+  ansible.builtin.get_url:
+    url: https://repos.influxdata.com/influxdata-archive.key
+    dest: /etc/apt/keyrings/influxdata-archive.gpg
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+
+- name: Show OS codename
+  debug:
+    msg: "The selected codename is {{ debian_codename | default(ansible_distribution_release) }}"
+
+- name: Add InfluxData repository (Debian/Ubuntu)
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/influxdata-archive.gpg] https://repos.influxdata.com/debian stable main"
+    state: present
+    filename: influxdata
+  when: ansible_os_family == "Debian"
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install Telegraf
+  ansible.builtin.apt:
+    name: telegraf
+    state: present
+  when: ansible_os_family == "Debian"

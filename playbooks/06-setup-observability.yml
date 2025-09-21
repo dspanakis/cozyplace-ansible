@@ -1,4 +1,4 @@
-- name: Configure telegraf for vms
+- name: Configure telegraf for host
   hosts: all
   become: true
 

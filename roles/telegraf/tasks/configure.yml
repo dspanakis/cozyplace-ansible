@@ -1,0 +1,31 @@
+- name: Deploy Telegraf configuration
+  ansible.builtin.template:
+    src: telegraf.conf.j2
+    dest: /etc/telegraf/telegraf.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart-telegraf
+  when: telegraf_enabled
+
+- name: Add user to docker group if telegraf_docker_enabled
+  ansible.builtin.user:
+    name: telegraf
+    groups: docker
+    append: yes
+  when: telegraf_enabled and telegraf_docker_enabled
+
+- name: Remove user from docker group if not telegraf_docker_enabled
+  ansible.builtin.user:
+    name: telegraf
+    groups: docker
+    append: no
+  when: not telegraf_docker_enabled
+
+- name: Enable and start Telegraf
+  ansible.builtin.service:
+    name: telegraf
+    state: started
+    enabled: yes
+  when: telegraf_enabled
