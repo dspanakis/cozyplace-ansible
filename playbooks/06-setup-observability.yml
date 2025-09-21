@@ -1,5 +1,5 @@
 - name: Configure telegraf for host
-  hosts: all
+  hosts: telegraf
   become: true
 
   roles:

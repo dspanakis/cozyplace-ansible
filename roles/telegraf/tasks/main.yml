@@ -2,8 +2,8 @@
 # Main tasks file for telegraf role
 
 - name: Include telegraf installation tasks
-  include_tasks: install.yml
-  when: telegraf_install | default(false)
+  include_tasks: Debian.yml
+  when: (telegraf_install | default(false)) and ansible_os_family == "Debian" 
 
 - name: Include telegraf configuration tasks
   include_tasks: configure.yml
