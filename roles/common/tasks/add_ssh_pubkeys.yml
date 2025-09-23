@@ -1,0 +1,8 @@
+- name: Add multiple authorized_keys for multiple users
+  ansible.posix.authorized_key:
+    user: "{{ item.0.name }}"
+    state: present
+    key: "{{ item.1 }}"
+  loop: "{{ common_public_keys | subelements('pubkeys', skip_missing=True) }}"
+  ignore_errors: yes
+  become: true

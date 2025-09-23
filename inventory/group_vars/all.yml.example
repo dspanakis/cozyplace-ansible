@@ -1,2 +1,7 @@
 INFLUX_URL: "your influx db url"
 INFLUX_TOKEN: "your influx token"
+
+common_public_keys:
+  - name: NAME_1
+    pubkeys:
+      - "{{ lookup('file', 'KEY_1.pub') }}"

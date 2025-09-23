@@ -14,6 +14,10 @@
   when: ansible_os_family == "RedHat"
   become: true
 
+- name: Import SSH Management Role
+  include_tasks: add_ssh_pubkeys.yml
+  when: common_public_keys is defined
+
 - name: Install common packages
   package:
     name: "{{ common_packages }}"
